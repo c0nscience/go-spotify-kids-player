@@ -2,36 +2,37 @@ package handlers
 
 import (
 	"github.com/gin-gonic/gin"
-	"go-spotify-kids-player/pkg/models"
+	spotify2 "github.com/zmb3/spotify/v2"
 	"go-spotify-kids-player/pkg/playlist"
 	"go-spotify-kids-player/pkg/spotify"
-	"go-spotify-kids-player/web/template"
 	"net/http"
-	"os"
 )
 
-func List(c *gin.Context) {
-	accessToken, err := spotify.GetAccessToken(os.Getenv("SPOTIFY_CLIENT_ID"), os.Getenv("SPOTIFY_CLIENT_SECRET"))
-	if err != nil {
-		_ = c.Error(err)
-		return
-	}
+type playlistViewModel struct {
+	Img string
+	Id  string
+}
 
-	paylists := playlist.GetAll()
+func List(cli *spotify2.Client) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		playlists := playlist.GetAll()
 
-	playlistViewModels := []models.PlaylistViewModel{}
+		var playlistViewModels []playlistViewModel
 
-	for _, p := range paylists {
-		id := models.GetId(p)
+		for _, p := range playlists {
+			id := playlist.GetId(p)
 
-		img, err := spotify.GetCoverImage(accessToken, id)
-		if err == nil {
-			playlistViewModels = append(playlistViewModels, models.PlaylistViewModel{
-				Img: img,
-				Id:  p.Id,
-			})
+			img, err := spotify.GetCoverImage(c, cli, id)
+			if err == nil {
+				playlistViewModels = append(playlistViewModels, playlistViewModel{
+					Img: img,
+					Id:  p.Id,
+				})
+			}
 		}
-	}
 
-	c.HTML(http.StatusOK, "", template.List(playlistViewModels))
+		c.HTML(http.StatusOK, "list.gohtml", gin.H{
+			"Playlists": playlistViewModels,
+		})
+	}
 }

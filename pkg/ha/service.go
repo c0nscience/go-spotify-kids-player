@@ -20,7 +20,7 @@ var accessToken = os.Getenv("HA_TOKEN")
 
 func Play(contentId string) error {
 	reqBody := homeAssistantRequest{
-		EntityId:         []string{"media_player.playroom"},
+		EntityId:         []string{"media_player.living_room"},
 		MediaContentId:   contentId,
 		MediaContentType: "playlist",
 		Enqueue:          "replace",

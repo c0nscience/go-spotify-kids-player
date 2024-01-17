@@ -1,0 +1,5 @@
+version: 3
+
+tasks:
+  css:
+    cmd: 'npx tailwindcss --output cmd/player/assets/css/main.css --content ./web/template/**/*.templ --watch'

@@ -1,0 +1,6 @@
+{
+  "name": "go-spotify-kids-player",
+  "dependencies": {
+    "@tailwindcss/aspect-ratio": "^0.4.2"
+  }
+}

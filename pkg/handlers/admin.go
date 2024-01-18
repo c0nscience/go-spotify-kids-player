@@ -5,18 +5,29 @@ import (
 	spotifyapi "github.com/zmb3/spotify/v2"
 	"go-spotify-kids-player/pkg/playlist"
 	"go-spotify-kids-player/pkg/spotify"
+	"go-spotify-kids-player/pkg/store"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"net/http"
 )
 
-func Edit(c *gin.Context) {
-	playlists := playlist.GetAll()
+func Edit(s store.Store) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var playlists []playlist.Playlist
 
-	c.HTML(http.StatusOK, "edit.gohtml", gin.H{
-		"Playlists": playlists,
-	})
+		err := s.Find(c, bson.D{}, nil, &playlists)
+		if err != nil {
+			_ = c.Error(err)
+			return
+		}
+
+		c.HTML(http.StatusOK, "edit.gohtml", gin.H{
+			"Playlists": playlists,
+		})
+	}
 }
 
-func Add(cli *spotifyapi.Client) gin.HandlerFunc {
+func Add(cli *spotifyapi.Client, st store.Store) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		u := c.PostForm("url")
 		spotifyId := spotify.GetIdFrom(u)
@@ -37,26 +48,41 @@ func Add(cli *spotifyapi.Client) gin.HandlerFunc {
 			artistNames = append(artistNames, artist.Name)
 		}
 
-		storedPlaylist := playlist.Store(playlist.Playlist{
+		pl := &playlist.Playlist{
 			Url:       u,
 			Name:      album.Name,
 			Img:       imgUrl,
 			SpotifyID: spotifyId,
 			Artists:   artistNames,
-		})
+		}
+
+		id, err := st.Save(c, pl)
+		if err != nil {
+			_ = c.Error(err)
+			return
+		}
+		pl.ID = id.(primitive.ObjectID)
 
 		c.HTML(http.StatusOK, "edit-list-entry", gin.H{
-			"ID":      storedPlaylist.ID,
-			"Img":     storedPlaylist.Img,
-			"Name":    storedPlaylist.Name,
-			"Artists": storedPlaylist.Artists,
+			"ID":      pl.ID.Hex(),
+			"Img":     pl.Img,
+			"Name":    pl.Name,
+			"Artists": pl.Artists,
 		})
 	}
 }
 
-func Delete(c *gin.Context) {
-	id := c.Param("id")
+func Delete(s store.Store) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		id := c.Param("id")
+		objectId, _ := primitive.ObjectIDFromHex(id)
 
-	playlist.DeleteByID(id)
-	c.Status(http.StatusOK)
+		err := s.Delete(c, bson.M{"_id": objectId}, nil)
+		if err != nil {
+			_ = c.Error(err)
+			return
+		}
+
+		c.Status(http.StatusOK)
+	}
 }

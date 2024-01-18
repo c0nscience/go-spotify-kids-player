@@ -5,12 +5,14 @@ import (
 	"embed"
 	"errors"
 	"github.com/gin-gonic/gin"
+	"github.com/rs/zerolog/log"
 	spotifyapi "github.com/zmb3/spotify/v2"
 	"github.com/zmb3/spotify/v2/auth"
 	"go-spotify-kids-player/pkg/handlers"
+	"go-spotify-kids-player/pkg/playlist"
+	"go-spotify-kids-player/pkg/store"
 	"golang.org/x/oauth2/clientcredentials"
 	"html/template"
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -32,6 +34,13 @@ func main() {
 	httpClient := config.Client(ctx)
 	syCli := spotifyapi.New(httpClient)
 
+	dbUri := os.Getenv("DB_URI")
+	dbName := os.Getenv("DB_NAME")
+	playlistClient, err := store.New(dbUri, dbName, playlist.Collection)
+	if err != nil {
+		log.Panic().Err(err).Msg("Could not create activity store")
+	}
+
 	r := gin.Default()
 	r.SetFuncMap(template.FuncMap{
 		"join": strings.Join,
@@ -40,11 +49,11 @@ func main() {
 
 	r.StaticFS("/public", http.FS(f))
 
-	r.GET("/", handlers.List)
-	r.GET("/:id/play", handlers.Play)
-	r.GET("/edit", handlers.Edit)
-	r.POST("/add", handlers.Add(syCli))
-	r.DELETE("/:id/delete", handlers.Delete)
+	r.GET("/", handlers.List(playlistClient))
+	r.GET("/:id/play", handlers.Play(playlistClient))
+	r.GET("/edit", handlers.Edit(playlistClient))
+	r.POST("/add", handlers.Add(syCli, playlistClient))
+	r.DELETE("/:id/delete", handlers.Delete(playlistClient))
 
 	srv := &http.Server{
 		Addr:    ":8080",
@@ -53,24 +62,28 @@ func main() {
 
 	go func() {
 		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			log.Fatalf("listen: %s\n", err)
+			log.Fatal().Err(err).Msgf("listen: %s\n", err)
 		}
 	}()
 
 	quit := make(chan os.Signal)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
-	log.Println("Shutdown Server ...")
+	log.Log().Msg("Shutdown Server ...")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 500*time.Millisecond)
 	defer cancel()
 	if err := srv.Shutdown(ctx); err != nil {
-		log.Fatal("Server Shutdown:", err)
+		log.Fatal().Err(err).Msgf("Server Shutdown failed")
 	}
+	if err := playlistClient.Disconnect(ctx); err != nil {
+		log.Fatal().Err(err).Msg("Disconnect from mongodb failed")
+	}
+
 	select {
 	case <-ctx.Done():
-		log.Println("timeout of 5 seconds.")
+		log.Log().Msg("timeout of 5 seconds.")
 	}
-	log.Println("Server exiting")
+	log.Log().Msg("Server exiting")
 
 }

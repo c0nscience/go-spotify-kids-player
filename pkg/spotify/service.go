@@ -2,13 +2,13 @@ package spotify
 
 import (
 	"context"
-	"github.com/zmb3/spotify/v2"
+	spotifyapi "github.com/zmb3/spotify/v2"
 )
 
-func GetCoverImage(ctx context.Context, cli *spotify.Client, id string) (string, error) {
-	album, err := cli.GetAlbum(ctx, spotify.ID(id))
+func GetAlbum(ctx context.Context, cli *spotifyapi.Client, id string) (*spotifyapi.FullAlbum, error) {
+	album, err := cli.GetAlbum(ctx, spotifyapi.ID(id))
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	return album.Images[0].URL, nil
+	return album, nil
 }

@@ -5,14 +5,16 @@ import (
 	"embed"
 	"errors"
 	"github.com/gin-gonic/gin"
-	"github.com/zmb3/spotify/v2"
+	spotifyapi "github.com/zmb3/spotify/v2"
 	"github.com/zmb3/spotify/v2/auth"
 	"go-spotify-kids-player/pkg/handlers"
 	"golang.org/x/oauth2/clientcredentials"
+	"html/template"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 )
@@ -27,23 +29,22 @@ func main() {
 		ClientSecret: os.Getenv("SPOTIFY_SECRET"),
 		TokenURL:     spotifyauth.TokenURL,
 	}
-	token, err := config.Token(ctx)
-	if err != nil {
-		log.Fatalf("couldn't get token: %v", err)
-	}
-
-	httpClient := spotifyauth.New().Client(ctx, token)
-	syCli := spotify.New(httpClient)
+	httpClient := config.Client(ctx)
+	syCli := spotifyapi.New(httpClient)
 
 	r := gin.Default()
+	r.SetFuncMap(template.FuncMap{
+		"join": strings.Join,
+	})
 	r.LoadHTMLGlob("templates/*.gohtml")
 
 	r.StaticFS("/public", http.FS(f))
 
-	r.GET("/", handlers.List(syCli))
+	r.GET("/", handlers.List)
 	r.GET("/:id/play", handlers.Play)
 	r.GET("/edit", handlers.Edit)
-	r.POST("/add", handlers.Add)
+	r.POST("/add", handlers.Add(syCli))
+	r.DELETE("/:id/delete", handlers.Delete)
 
 	srv := &http.Server{
 		Addr:    ":8080",
@@ -51,7 +52,6 @@ func main() {
 	}
 
 	go func() {
-		// service connections
 		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			log.Fatalf("listen: %s\n", err)
 		}

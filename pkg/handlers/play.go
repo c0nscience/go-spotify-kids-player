@@ -14,6 +14,8 @@ type roomSelectionForm struct {
 	Rooms []string `form:"rooms[]"`
 }
 
+var availableRooms = []string{"playroom", "kitchen", "bathroom"}
+
 func Play(s store.Store) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id := c.Param("id")
@@ -38,7 +40,23 @@ func Play(s store.Store) gin.HandlerFunc {
 			return
 		}
 
-		err = ha.Play(pl.Url, form.Rooms)
+		err = ha.Unjoin(availableRooms)
+		if err != nil {
+			_ = c.Error(err)
+			return
+		}
+
+		rooms := form.Rooms
+		if len(form.Rooms) > 1 {
+			room, err := ha.Join(form.Rooms)
+			if err != nil {
+				_ = c.Error(err)
+				return
+			}
+			rooms = []string{room}
+		}
+
+		err = ha.Play(pl.Url, rooms)
 		if err != nil {
 			_ = c.Error(err)
 			return

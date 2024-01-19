@@ -1,6 +1,7 @@
 {
   "name": "goSKiP",
   "display": "fullscreen",
+  "orientation": "portrait",
   "icons": [
     {
       "src": "icons/512.png",

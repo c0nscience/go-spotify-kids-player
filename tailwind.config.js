@@ -1,7 +1,7 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
-    './cmd/player/templates/*.gohtml',
+    './cmd/player/templates/**/*.gohtml',
   ],
   theme: {
     extend: {
@@ -16,6 +16,7 @@ module.exports = {
   },
   plugins: [
     require('@tailwindcss/aspect-ratio'),
+    require('@tailwindcss/forms'),
   ],
 }
 

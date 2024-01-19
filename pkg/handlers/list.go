@@ -9,11 +9,12 @@ import (
 )
 
 type PlaylistListViewModel struct {
-	ID  string
-	Img string
+	ID      string
+	Img     string
+	Playing bool
 }
 
-func List(s store.Store) gin.HandlerFunc {
+func ListView(s store.Store) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var playlists []playlist.Playlist
 
@@ -26,8 +27,9 @@ func List(s store.Store) gin.HandlerFunc {
 		var viewModels []PlaylistListViewModel
 		for _, p := range playlists {
 			viewModels = append(viewModels, PlaylistListViewModel{
-				ID:  p.ID.Hex(),
-				Img: p.Img,
+				ID:      p.ID.Hex(),
+				Img:     p.Img,
+				Playing: p.Playing,
 			})
 		}
 
@@ -50,13 +52,24 @@ func PartialList(s store.Store) gin.HandlerFunc {
 		var viewModels []PlaylistListViewModel
 		for _, p := range playlists {
 			viewModels = append(viewModels, PlaylistListViewModel{
-				ID:  p.ID.Hex(),
-				Img: p.Img,
+				ID:      p.ID.Hex(),
+				Img:     p.Img,
+				Playing: p.Playing,
 			})
 		}
 
 		c.HTML(http.StatusOK, "playlist-list", gin.H{
 			"Playlists": viewModels,
+		})
+	}
+}
+
+func RoomSelectionModal() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		id := c.Param("id")
+
+		c.HTML(http.StatusOK, "room-selection-modal.gohtml", gin.H{
+			"ID": id,
 		})
 	}
 }

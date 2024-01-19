@@ -17,10 +17,17 @@ type homeAssistantRequest struct {
 }
 
 var accessToken = os.Getenv("HA_TOKEN")
+var host = os.Getenv("HA_HOST")
 
-func Play(contentId string) error {
+func Play(contentId string, rooms []string) error {
+
+	var entityIds []string
+	for _, room := range rooms {
+		entityIds = append(entityIds, fmt.Sprintf("media_player.%s", room))
+	}
+
 	reqBody := homeAssistantRequest{
-		EntityId:         []string{"media_player.playroom"},
+		EntityId:         entityIds,
 		MediaContentId:   contentId,
 		MediaContentType: "playlist",
 		Enqueue:          "replace",
@@ -31,7 +38,7 @@ func Play(contentId string) error {
 		return err
 	}
 
-	req, err := http.NewRequest(http.MethodPost, "http://homeassistant.local:8123/api/services/media_player/play_media", bytes.NewReader(b))
+	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/api/services/media_player/play_media", host), bytes.NewReader(b))
 	req.Header.Set("content-type", "application/json")
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
 	if err != nil {

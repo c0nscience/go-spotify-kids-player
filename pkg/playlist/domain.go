@@ -14,6 +14,8 @@ type Playlist struct {
 	Img       string             `bson:"img"`
 	SpotifyID string             `bson:"spotifyID"`
 	Artists   []string           `bson:"artists"`
+	PlayCount int                `bson:"playCount"`
+	Playing   bool               `bson:"playing"`
 }
 
 func (p *Playlist) ObjectId() primitive.ObjectID {

@@ -15,7 +15,7 @@ func SSE(c *gin.Context) {
 	c.Writer.Header().Set("Cache-Control", "no-cache")
 	c.Writer.Header().Set("Connection", "keep-alive")
 
-	log.Log().Msg("client connected")
+	log.Info().Msg("client connected")
 
 	eventChan := make(ClientChan)
 	clients[eventChan] = struct{}{}
@@ -28,7 +28,7 @@ func SSE(c *gin.Context) {
 	notify := c.Writer.CloseNotify()
 	go func() {
 		<-notify
-		log.Log().Msg("client disconnected")
+		log.Info().Msg("client disconnected")
 	}()
 
 	for {

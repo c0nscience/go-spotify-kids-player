@@ -18,7 +18,7 @@ type EditListViewModel struct {
 	Artists []string
 }
 
-func Edit(s store.Store) gin.HandlerFunc {
+func EditView(s store.Store) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var playlists []playlist.Playlist
 

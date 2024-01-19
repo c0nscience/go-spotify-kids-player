@@ -10,24 +10,67 @@ import (
 	"net/http"
 )
 
+type roomSelectionForm struct {
+	Rooms []string `form:"rooms[]"`
+}
+
 func Play(s store.Store) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id := c.Param("id")
 		objectId, _ := primitive.ObjectIDFromHex(id)
 
-		var pl playlist.Playlist
-		err := s.FindOne(c, bson.M{"_id": objectId}, &pl)
+		var form roomSelectionForm
+		err := c.ShouldBind(&form)
 		if err != nil {
 			_ = c.Error(err)
 			return
 		}
 
-		err = ha.Play(pl.Url)
+		if len(form.Rooms) == 0 {
+			c.Status(http.StatusNoContent)
+			return
+		}
+
+		var pl playlist.Playlist
+		err = s.FindOne(c, bson.M{"_id": objectId}, &pl)
 		if err != nil {
 			_ = c.Error(err)
 			return
 		}
+
+		err = ha.Play(pl.Url, form.Rooms)
+		if err != nil {
+			_ = c.Error(err)
+			return
+		}
+
+		pl.PlayCount = pl.PlayCount + 1
+		pl.Playing = true
 
 		c.Status(http.StatusNoContent)
+
+		var playing []playlist.Playlist
+		err = s.Find(c, bson.M{"playing": true}, nil, &playing)
+		if err != nil {
+			_ = c.Error(err)
+			return
+		}
+
+		//todo not there yet - we need to avoid that it can be started every where
+		// before starting we should stop playing on the other rooms
+		// then start the playlist on the newly selected room
+
+		for _, p := range playing {
+			p.Playing = false
+			_, _ = s.Save(c, &p)
+		}
+
+		_, err = s.Save(c, &pl)
+		if err != nil {
+			_ = c.Error(err)
+			return
+		}
+
+		sendUpdateEvent("")
 	}
 }

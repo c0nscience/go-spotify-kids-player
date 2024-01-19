@@ -2,12 +2,25 @@
 @tailwind components;
 @tailwind utilities;
 
-.htmx-indicator{
-    display:none;
+.htmx-indicator {
+    display: none;
 }
-.htmx-request .htmx-indicator{
-    display:grid;
+
+.htmx-request .htmx-indicator {
+    display: grid;
 }
-.htmx-request.htmx-indicator{
-    display:grid;
+
+.htmx-request.htmx-indicator {
+    display: grid;
+}
+
+::backdrop {
+    background-image: linear-gradient(
+            45deg,
+            magenta,
+            rebeccapurple,
+            dodgerblue,
+            green
+    );
+    opacity: 0.75;
 }

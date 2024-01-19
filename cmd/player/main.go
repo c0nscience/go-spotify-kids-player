@@ -6,6 +6,7 @@ import (
 	"errors"
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/render"
+	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	spotifyapi "github.com/zmb3/spotify/v2"
 	"github.com/zmb3/spotify/v2/auth"
@@ -26,6 +27,10 @@ import (
 //go:embed assets/* templates/*
 var f embed.FS
 
+func init() {
+	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stdout, TimeFormat: time.RFC3339})
+}
+
 func main() {
 	ctx := context.Background()
 	config := &clientcredentials.Config{
@@ -44,6 +49,8 @@ func main() {
 	}
 
 	r := gin.Default()
+	r.Use(handlers.ErrorHandling)
+
 	r.SetFuncMap(template.FuncMap{
 		"join": strings.Join,
 	})
@@ -51,13 +58,14 @@ func main() {
 
 	r.StaticFS("/public", http.FS(f))
 
-	r.GET("/", handlers.List(playlistClient))
-	r.GET("/:id/play", handlers.Play(playlistClient))
-	r.GET("/edit", handlers.Edit(playlistClient))
+	r.GET("/", handlers.ListView(playlistClient))
+	r.POST("/:id/play", handlers.Play(playlistClient))
+	r.GET("/edit", handlers.EditView(playlistClient))
 	r.POST("/add", handlers.Add(syCli, playlistClient))
 	r.DELETE("/:id/delete", handlers.Delete(playlistClient))
 	r.GET("/sse", handlers.SSE)
 	r.GET("/update-list", handlers.PartialList(playlistClient))
+	r.GET("/:id/select-room", handlers.RoomSelectionModal())
 
 	srv := &http.Server{
 		Addr:    ":8080",
@@ -73,7 +81,7 @@ func main() {
 	quit := make(chan os.Signal)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
-	log.Log().Msg("Shutdown Server ...")
+	log.Info().Msg("Shutdown Server ...")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 500*time.Millisecond)
 	defer cancel()
@@ -86,9 +94,9 @@ func main() {
 
 	select {
 	case <-ctx.Done():
-		log.Log().Msg("timeout of 5 seconds.")
+		log.Info().Msg("timeout of 5 seconds.")
 	}
-	log.Log().Msg("Server exiting")
+	log.Info().Msg("Server exiting")
 
 }
 

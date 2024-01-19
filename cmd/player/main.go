@@ -5,6 +5,7 @@ import (
 	"embed"
 	"errors"
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/render"
 	"github.com/rs/zerolog/log"
 	spotifyapi "github.com/zmb3/spotify/v2"
 	"github.com/zmb3/spotify/v2/auth"
@@ -13,6 +14,7 @@ import (
 	"go-spotify-kids-player/pkg/store"
 	"golang.org/x/oauth2/clientcredentials"
 	"html/template"
+	"io/fs"
 	"net/http"
 	"os"
 	"os/signal"
@@ -21,7 +23,7 @@ import (
 	"time"
 )
 
-//go:embed assets/*
+//go:embed assets/* templates/*
 var f embed.FS
 
 func main() {
@@ -45,7 +47,7 @@ func main() {
 	r.SetFuncMap(template.FuncMap{
 		"join": strings.Join,
 	})
-	r.LoadHTMLGlob("templates/*.gohtml")
+	loadHTMLFiles(r, f, "templates/*.gohtml")
 
 	r.StaticFS("/public", http.FS(f))
 
@@ -86,4 +88,10 @@ func main() {
 	}
 	log.Log().Msg("Server exiting")
 
+}
+
+func loadHTMLFiles(engine *gin.Engine, f fs.FS, pattern ...string) {
+	delims := render.Delims{Left: "{{", Right: "}}"}
+	templ := template.Must(template.New("").Delims(delims.Left, delims.Right).Funcs(engine.FuncMap).ParseFS(f, pattern...))
+	engine.SetHTMLTemplate(templ)
 }

@@ -11,6 +11,13 @@ import (
 	"net/http"
 )
 
+type EditListViewModel struct {
+	ID      string
+	Img     string
+	Name    string
+	Artists []string
+}
+
 func Edit(s store.Store) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var playlists []playlist.Playlist
@@ -21,8 +28,18 @@ func Edit(s store.Store) gin.HandlerFunc {
 			return
 		}
 
+		var viewModels []EditListViewModel
+		for _, p := range playlists {
+			viewModels = append(viewModels, EditListViewModel{
+				ID:      p.ID.Hex(),
+				Img:     p.Img,
+				Name:    p.Name,
+				Artists: p.Artists,
+			})
+		}
+
 		c.HTML(http.StatusOK, "edit.gohtml", gin.H{
-			"Playlists": playlists,
+			"Playlists": viewModels,
 		})
 	}
 }

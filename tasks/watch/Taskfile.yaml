@@ -2,4 +2,4 @@ version: 3
 
 tasks:
   css:
-    cmd: 'npx tailwindcss -i ./assets/css/main.css --output cmd/player/assets/css/main.css --content ./cmd/player/templates/*.gohtml --watch'
+    cmd: 'npx tailwindcss -i ./assets/css/main.css --output cmd/player/assets/css/main.css --content cmd/player/templates/*.gohtml --watch'

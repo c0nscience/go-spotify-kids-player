@@ -80,12 +80,15 @@ func Add(cli *spotifyapi.Client, st store.Store) gin.HandlerFunc {
 		}
 		pl.ID = id.(primitive.ObjectID)
 
-		c.HTML(http.StatusOK, "edit-list-entry", gin.H{
-			"ID":      pl.ID.Hex(),
-			"Img":     pl.Img,
-			"Name":    pl.Name,
-			"Artists": pl.Artists,
-		})
+		model := EditListViewModel{
+			ID:      pl.ID.Hex(),
+			Img:     pl.Img,
+			Name:    pl.Name,
+			Artists: pl.Artists,
+		}
+		c.HTML(http.StatusOK, "edit-list-entry", model)
+
+		sendUpdateEvent("")
 	}
 }
 
@@ -101,5 +104,6 @@ func Delete(s store.Store) gin.HandlerFunc {
 		}
 
 		c.Status(http.StatusOK)
+		sendUpdateEvent("")
 	}
 }

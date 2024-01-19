@@ -8,6 +8,11 @@ import (
 	"net/http"
 )
 
+type PlaylistListViewModel struct {
+	ID  string
+	Img string
+}
+
 func List(s store.Store) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var playlists []playlist.Playlist
@@ -18,8 +23,40 @@ func List(s store.Store) gin.HandlerFunc {
 			return
 		}
 
+		var viewModels []PlaylistListViewModel
+		for _, p := range playlists {
+			viewModels = append(viewModels, PlaylistListViewModel{
+				ID:  p.ID.Hex(),
+				Img: p.Img,
+			})
+		}
+
 		c.HTML(http.StatusOK, "list.gohtml", gin.H{
-			"Playlists": playlists,
+			"Playlists": viewModels,
+		})
+	}
+}
+
+func PartialList(s store.Store) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var playlists []playlist.Playlist
+
+		err := s.Find(c, bson.D{}, nil, &playlists)
+		if err != nil {
+			_ = c.Error(err)
+			return
+		}
+
+		var viewModels []PlaylistListViewModel
+		for _, p := range playlists {
+			viewModels = append(viewModels, PlaylistListViewModel{
+				ID:  p.ID.Hex(),
+				Img: p.Img,
+			})
+		}
+
+		c.HTML(http.StatusOK, "playlist-list", gin.H{
+			"Playlists": viewModels,
 		})
 	}
 }

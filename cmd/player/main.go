@@ -56,6 +56,8 @@ func main() {
 	r.GET("/edit", handlers.Edit(playlistClient))
 	r.POST("/add", handlers.Add(syCli, playlistClient))
 	r.DELETE("/:id/delete", handlers.Delete(playlistClient))
+	r.GET("/sse", handlers.SSE)
+	r.GET("/update-list", handlers.PartialList(playlistClient))
 
 	srv := &http.Server{
 		Addr:    ":8080",

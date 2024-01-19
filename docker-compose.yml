@@ -6,3 +6,10 @@ services:
       MONGO_INITDB_DATABASE: goskip-db
     ports:
       - "27019:27017"
+
+  mongo-dev:
+    image: mongo:7.0.5
+    environment:
+      MONGO_INITDB_DATABASE: goskip-db-dev
+    ports:
+      - "27020:27017"

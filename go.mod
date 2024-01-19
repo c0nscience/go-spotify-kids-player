@@ -4,7 +4,6 @@ go 1.21
 
 require (
 	github.com/gin-gonic/gin v1.9.1
-	github.com/google/uuid v1.5.0
 	github.com/rs/zerolog v1.31.0
 	github.com/zmb3/spotify/v2 v2.4.0
 	go.mongodb.org/mongo-driver v1.13.1

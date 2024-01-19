@@ -1,17 +1,25 @@
 {{template "header.gohtml" .}}
 
-<div class="mt-2 grid grid-cols-2 gap-x-6 gap-y-10 lg:grid-cols-4 xl:gap-x-8">
-    {{range .Playlists}}
-        <div class="group relative">
-            <div class="aspect-h-1 aspect-w-1 h-1/4 overflow-hidden rounded-md bg-gray-200 group-hover:opacity-75">
-                <img src="{{.Img}}"
-                     hx-get="{{ printf "/%s/play" .ID }}"
-                     hx-indicator="#loader"
-                     class="h-full w-full object-cover object-center lg:h-full lg:w-full"
-                     alt="playlist cover"/>
-            </div>
-        </div>
-    {{end}}
+<div hx-ext="sse"
+     sse-connect="/sse">
+
+    <div class="mt-2 grid grid-cols-2 gap-x-6 gap-y-10 lg:grid-cols-4 xl:gap-x-8"
+         hx-get="/update-list" hx-trigger="sse:message" hx-indicator="#loader"
+    >
+        {{block "playlist-list" .}}
+            {{range .Playlists}}
+                <div class="group relative">
+                    <div class="aspect-h-1 aspect-w-1 h-1/4 overflow-hidden rounded-md bg-gray-200 group-hover:opacity-75">
+                        <img src="{{.Img}}"
+                             hx-get="{{ printf "/%s/play" .ID }}"
+                             hx-indicator="#loader"
+                             class="h-full w-full object-cover object-center lg:h-full lg:w-full"
+                             alt="playlist cover"/>
+                    </div>
+                </div>
+            {{end}}
+        {{end}}
+    </div>
 </div>
 
 {{template "loader.gohtml" .}}

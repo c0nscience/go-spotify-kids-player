@@ -39,7 +39,7 @@ func main() {
 		TokenURL:     spotifyauth.TokenURL,
 	}
 	httpClient := config.Client(ctx)
-	syCli := spotifyapi.New(httpClient)
+	syCli := spotifyapi.New(httpClient, spotifyapi.WithAcceptLanguage("DE"))
 
 	dbUri := os.Getenv("DB_URI")
 	dbName := os.Getenv("DB_NAME")

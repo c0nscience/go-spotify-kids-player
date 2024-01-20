@@ -10,7 +10,7 @@
         {{block "playlist-list" .}}
             {{range .Playlists}}
                 <div class="group relative">
-                    <div class="aspect-h-1 aspect-w-1 h-1/4 overflow-hidden rounded-md bg-gray-200 group-hover:opacity-75 {{if .Playing }}ring-8 ring-green-500 ring-opacity-75{{end}}">
+                    <div class="aspect-h-1 aspect-w-1 h-1/4 overflow-hidden rounded-md bg-gray-200 group-hover:opacity-75 {{if .Playing }}ring-8 ring-green-500 ring-opacity-75 motion-safe:animate-pulse{{end}}">
                         <img src="{{.Img}}"
                              hx-get="{{ printf "/%s/select-room" .ID }}"
                              hx-target="body"

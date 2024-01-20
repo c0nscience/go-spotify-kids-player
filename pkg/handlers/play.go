@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/rs/zerolog/log"
 	"go-spotify-kids-player/pkg/ha"
 	"go-spotify-kids-player/pkg/playlist"
 	"go-spotify-kids-player/pkg/store"
@@ -14,7 +15,15 @@ type roomSelectionForm struct {
 	Rooms []string `form:"rooms[]"`
 }
 
-var availableRooms = []string{"playroom", "kitchen", "bathroom"}
+var (
+	availableRooms = []string{
+		"playroom",
+		"kitchen",
+		"bathroom",
+		//"living_room",
+	}
+	lastPlayedRooms []string
+)
 
 func Play(s store.Store) gin.HandlerFunc {
 	return func(c *gin.Context) {
@@ -27,6 +36,7 @@ func Play(s store.Store) gin.HandlerFunc {
 			_ = c.Error(err)
 			return
 		}
+		log.Info().Msgf("selected rooms: %v", form.Rooms)
 
 		if len(form.Rooms) == 0 {
 			c.Status(http.StatusNoContent)
@@ -40,27 +50,35 @@ func Play(s store.Store) gin.HandlerFunc {
 			return
 		}
 
-		err = ha.Unjoin(availableRooms)
-		if err != nil {
-			_ = c.Error(err)
-			return
-		}
-
-		rooms := form.Rooms
-		if len(form.Rooms) > 1 {
-			room, err := ha.Join(form.Rooms)
+		if len(lastPlayedRooms) > 0 {
+			err := ha.Stop(lastPlayedRooms)
 			if err != nil {
 				_ = c.Error(err)
 				return
 			}
-			rooms = []string{room}
+
+			err = ha.Unjoin(lastPlayedRooms)
+			if err != nil {
+				_ = c.Error(err)
+				return
+			}
 		}
 
-		err = ha.Play(pl.Url, rooms)
+		if len(form.Rooms) > 1 {
+			err := ha.Join(form.Rooms)
+			if err != nil {
+				_ = c.Error(err)
+				return
+			}
+		}
+
+		err = ha.Play(pl.Url, form.Rooms)
 		if err != nil {
 			_ = c.Error(err)
 			return
 		}
+
+		lastPlayedRooms = form.Rooms
 
 		pl.PlayCount = pl.PlayCount + 1
 		pl.Playing = true

@@ -21,115 +21,94 @@ type joinRequest struct {
 	GroupMembers []string `json:"group_members"`
 }
 
-type unjoinRequest struct {
+type basicRequest struct {
 	EntityId []string `json:"entity_id"`
 }
+
+type Service string
+
+const (
+	PlayService   Service = "play_media"
+	StopService   Service = "media_stop"
+	JoinService   Service = "join"
+	UnjoinService Service = "unjoin"
+)
 
 var accessToken = os.Getenv("HA_TOKEN")
 var host = os.Getenv("HA_HOST")
 
-func toEntityIds(rooms []string) []string {
-	var entityIds []string
+func entityIds(rooms []string) []string {
+	var res []string
 	for _, room := range rooms {
-		entityIds = append(entityIds, fmt.Sprintf("media_player.%s", room))
+		res = append(res, fmt.Sprintf("media_player.%s", room))
 	}
 
-	return entityIds
+	return res
+}
+
+func url(service Service) string {
+	return fmt.Sprintf("%s/api/services/media_player/%s", host, service)
+}
+
+func sendRequest(method string, url string, reqBody interface{}) error {
+	b, err := json.Marshal(&reqBody)
+	if err != nil {
+		return err
+	}
+
+	req, err := http.NewRequest(method, url, bytes.NewReader(b))
+	req.Header.Set("content-type", "application/json")
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
+	if err != nil {
+		return err
+	}
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode > 200 {
+		return errors.Join(fmt.Errorf("%s request to %s", method, url), err)
+	}
+
+	return nil
 }
 
 func Play(contentId string, rooms []string) error {
-	entityIds := toEntityIds(rooms)
-
 	reqBody := playRequest{
-		EntityId:         entityIds,
+		EntityId:         entityIds(rooms),
 		MediaContentId:   contentId,
 		MediaContentType: "playlist",
 		Enqueue:          "replace",
 	}
 
-	b, err := json.Marshal(&reqBody)
-	if err != nil {
-		return err
-	}
-
-	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/api/services/media_player/play_media", host), bytes.NewReader(b))
-	req.Header.Set("content-type", "application/json")
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
-	if err != nil {
-		return err
-	}
-
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return err
-	}
-
-	if resp.StatusCode > 200 {
-		return errors.New("could start playing")
-	}
-
-	return nil
+	return sendRequest(http.MethodPost, url(PlayService), &reqBody)
 }
 
-func Join(rooms []string) (string, error) {
-	entityIds := toEntityIds(rooms)
+func Stop(rooms []string) error {
+	reqBody := basicRequest{
+		EntityId: entityIds(rooms),
+	}
+
+	return sendRequest(http.MethodPost, url(StopService), &reqBody)
+}
+
+func Join(rooms []string) error {
+	ids := entityIds(rooms)
 
 	reqBody := joinRequest{
-		EntityId:     entityIds,
-		GroupMembers: entityIds,
+		EntityId:     ids,
+		GroupMembers: ids,
 	}
 
-	b, err := json.Marshal(&reqBody)
-	if err != nil {
-		return "", err
-	}
-
-	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/api/services/media_player/join", host), bytes.NewReader(b))
-	req.Header.Set("content-type", "application/json")
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
-	if err != nil {
-		return "", err
-	}
-
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return "", err
-	}
-
-	if resp.StatusCode > 200 {
-		return "", errors.New("could not join the rooms")
-	}
-
-	return rooms[0], nil
+	return sendRequest(http.MethodPost, url(JoinService), &reqBody)
 }
 
 func Unjoin(rooms []string) error {
-	entityIds := toEntityIds(rooms)
-
-	reqBody := unjoinRequest{
-		EntityId: entityIds,
+	reqBody := basicRequest{
+		EntityId: entityIds(rooms),
 	}
 
-	b, err := json.Marshal(&reqBody)
-	if err != nil {
-		return err
-	}
-
-	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/api/services/media_player/unjoin", host), bytes.NewReader(b))
-	req.Header.Set("content-type", "application/json")
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
-	if err != nil {
-		return err
-	}
-
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return err
-	}
-
-	if resp.StatusCode > 200 {
-		return errors.New("could not unjoin the rooms")
-	}
-
-	return nil
+	return sendRequest(http.MethodPost, url(UnjoinService), &reqBody)
 }

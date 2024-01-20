@@ -2,6 +2,6 @@ version: 3
 
 tasks:
   css:
-    cmd: 'npx tailwindcss -i ./assets/css/main.css -o ./cmd/player/assets/css/main.css --minify'
+    cmd: 'npx tailwindcss -i ./assets/css/main.css -o ./public/css/main.css --minify'
   css-non-mini:
-    cmd: 'npx tailwindcss -i ./assets/css/main.css -o ./cmd/player/assets/css/main.css'
+    cmd: 'npx tailwindcss -i ./assets/css/main.css -o ./public/css/main.css'

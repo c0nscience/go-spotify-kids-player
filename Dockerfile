@@ -4,15 +4,13 @@ WORKDIR /app
 
 COPY . .
 
-RUN npm ci && npx tailwindcss -i ./assets/css/main.css -o ./cmd/player/assets/css/main.css --minify
+RUN npm ci && npm install -g @go-task/cli && task build:css
 
 FROM golang:alpine as builder
 
 RUN apk add -U --no-cache ca-certificates
 
 WORKDIR /app
-
-COPY --from=webbuilder /app/cmd/player/assets/css/main.css /app/cmd/player/assets/css/main.css
 
 COPY . .
 
@@ -22,6 +20,8 @@ FROM scratch
 
 WORKDIR /app
 
+COPY --from=webbuilder /app/public /app/public
+COPY --from=webbuilder /app/templates /app/templates
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=builder /app/web /usr/bin/
 

@@ -69,7 +69,8 @@ func RoomSelectionModal() gin.HandlerFunc {
 		id := c.Param("id")
 
 		c.HTML(http.StatusOK, "room-selection-modal.gohtml", gin.H{
-			"ID": id,
+			"ID":    id,
+			"Rooms": availableRooms,
 		})
 	}
 }

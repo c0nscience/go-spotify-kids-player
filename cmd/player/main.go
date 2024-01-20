@@ -2,10 +2,8 @@ package main
 
 import (
 	"context"
-	"embed"
 	"errors"
 	"github.com/gin-gonic/gin"
-	"github.com/gin-gonic/gin/render"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	spotifyapi "github.com/zmb3/spotify/v2"
@@ -15,7 +13,6 @@ import (
 	"go-spotify-kids-player/pkg/store"
 	"golang.org/x/oauth2/clientcredentials"
 	"html/template"
-	"io/fs"
 	"net/http"
 	"os"
 	"os/signal"
@@ -24,14 +21,14 @@ import (
 	"time"
 )
 
-//go:embed assets/* templates/*
-var f embed.FS
-
 func init() {
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stdout, TimeFormat: time.RFC3339})
 }
 
 func main() {
+	//dir, _ := os.Getwd()
+	//log.Info().Msgf("pwd: %s", dir)
+	//return
 	ctx := context.Background()
 	config := &clientcredentials.Config{
 		ClientID:     os.Getenv("SPOTIFY_ID"),
@@ -54,9 +51,9 @@ func main() {
 	r.SetFuncMap(template.FuncMap{
 		"join": strings.Join,
 	})
-	loadHTMLFiles(r, f, "templates/*.gohtml")
+	r.LoadHTMLGlob("./templates/*.gohtml")
 
-	r.StaticFS("/public", http.FS(f))
+	r.Static("/public", "./public")
 
 	r.GET("/", handlers.ListView(playlistClient))
 	r.POST("/:id/play", handlers.Play(playlistClient))
@@ -98,10 +95,4 @@ func main() {
 	}
 	log.Info().Msg("Server exiting")
 
-}
-
-func loadHTMLFiles(engine *gin.Engine, f fs.FS, pattern ...string) {
-	delims := render.Delims{Left: "{{", Right: "}}"}
-	templ := template.Must(template.New("").Delims(delims.Left, delims.Right).Funcs(engine.FuncMap).ParseFS(f, pattern...))
-	engine.SetHTMLTemplate(templ)
 }

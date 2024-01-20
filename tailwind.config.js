@@ -1,7 +1,7 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
-    './cmd/player/templates/**/*.gohtml',
+    './templates/**/*.gohtml',
   ],
   theme: {
     extend: {

@@ -20,7 +20,7 @@ var (
 		"playroom",
 		"kitchen",
 		"bathroom",
-		//"living_room",
+		"living_room",
 	}
 	lastPlayedRooms []string
 )

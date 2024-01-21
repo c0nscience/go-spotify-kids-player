@@ -5,6 +5,7 @@ import (
 	"go-spotify-kids-player/pkg/playlist"
 	"go-spotify-kids-player/pkg/store"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"net/http"
 )
 
@@ -64,12 +65,25 @@ func PartialList(s store.Store) gin.HandlerFunc {
 	}
 }
 
-func RoomSelectionModal() gin.HandlerFunc {
+func RoomSelectionModal(s store.Store) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id := c.Param("id")
+		objectId, err := primitive.ObjectIDFromHex(id)
+		if err != nil {
+			_ = c.Error(err)
+			return
+		}
+
+		var pl playlist.Playlist
+		err = s.FindOne(c, bson.M{"_id": objectId}, &pl)
+		if err != nil {
+			_ = c.Error(err)
+			return
+		}
 
 		c.HTML(http.StatusOK, "room-selection-modal.gohtml", gin.H{
 			"ID":    id,
+			"Img":   pl.Img,
 			"Rooms": availableRooms,
 		})
 	}

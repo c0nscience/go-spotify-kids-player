@@ -62,7 +62,7 @@ func main() {
 	r.DELETE("/:id/delete", handlers.Delete(playlistClient))
 	r.GET("/sse", handlers.SSE)
 	r.GET("/update-list", handlers.PartialList(playlistClient))
-	r.GET("/:id/select-room", handlers.RoomSelectionModal())
+	r.GET("/:id/select-room", handlers.RoomSelectionModal(playlistClient))
 
 	srv := &http.Server{
 		Addr:    ":8080",

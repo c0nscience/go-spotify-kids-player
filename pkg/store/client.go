@@ -31,8 +31,7 @@ type mongoDbStore struct {
 }
 
 func New(uri, db string, collection CollectionName) (Store, error) {
-	serverAPI := options.ServerAPI(options.ServerAPIVersion1)
-	opts := options.Client().ApplyURI(uri).SetServerAPIOptions(serverAPI)
+	opts := options.Client().ApplyURI(uri)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()

@@ -14,7 +14,7 @@ WORKDIR /app
 
 COPY . .
 
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o web cmd/player/main.go
+RUN CGO_ENABLED=0 GOOS=linux go build -o web cmd/player/main.go
 
 FROM scratch
 
@@ -27,6 +27,6 @@ COPY --from=builder /app/web /usr/bin/
 
 ENV GIN_MODE=release
 
-EXPOSE 8081
+EXPOSE 8080
 
 ENTRYPOINT ["web"]

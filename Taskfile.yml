@@ -2,3 +2,4 @@ version: '3'
 
 includes:
   build: 'tasks/build'
+  docker: 'tasks/docker'

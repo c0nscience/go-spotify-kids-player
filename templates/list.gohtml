@@ -3,14 +3,14 @@
 <div hx-ext="sse"
      sse-connect="/sse">
 
-    <div class="mt-2 grid grid-cols-2 gap-x-6 gap-y-10 lg:grid-cols-4 xl:gap-x-8"
+    <div class="mt-2 grid grid-cols-2 gap-x-4 gap-y-2 lg:grid-cols-4 xl:gap-x-8"
          hx-get="/update-list"
          hx-trigger="sse:message"
          hx-indicator="#loader">
         {{block "playlist-list" .}}
             {{range .Playlists}}
                 <div class="group relative">
-                    <div class="aspect-h-1 aspect-w-1 h-1/4 overflow-hidden rounded-md bg-gray-200 group-hover:opacity-75 active:blur-sm {{if .Playing }}ring-8 ring-green-500 ring-opacity-75 motion-safe:animate-pulse{{end}}">
+                    <div class="aspect-h-1 aspect-w-1 overflow-hidden rounded-md bg-gray-200 drop-shadow-sm group-hover:opacity-75 active:blur-sm">
                         <img src="{{.Img}}"
                              hx-get="{{ printf "/%s/select-room" .ID }}"
                              hx-target="body"

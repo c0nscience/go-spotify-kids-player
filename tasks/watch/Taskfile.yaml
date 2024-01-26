@@ -1,0 +1,5 @@
+version: 3
+
+tasks:
+  css:
+    cmd: 'npx tailwindcss -i ./assets/css/main.css -o ./public/css/main.css --watch'

@@ -2,4 +2,4 @@
 
   tasks:
     push:
-      cmd: docker buildx build --platform linux/arm64 -t bherzig/skip:{{.VERSION}} --attest type=provenance mode=min --push .
+      cmd: docker buildx build --platform linux/arm64 -t bherzig/skip:{{.VERSION}} --push .

@@ -27,6 +27,4 @@ COPY --from=builder /app/web /usr/bin/
 
 ENV GIN_MODE=release
 
-USER nonroot
-
 ENTRYPOINT ["web"]

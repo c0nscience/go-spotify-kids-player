@@ -1,30 +1,33 @@
-{{template "header.gohtml" .}}
+{{template "header" .}}
+
+{{template "player" .Player}}
 
 <div hx-ext="sse"
      sse-connect="/sse">
 
-    <div class="mt-2 grid grid-cols-2 gap-x-4 gap-y-2 lg:grid-cols-4 xl:gap-x-8"
+    <div class="mt-2 grid grid-cols-2 gap-x-4 gap-y-2 overflow-y-scroll h-svh lg:grid-cols-4 xl:gap-x-8"
          hx-get="/update-list"
          hx-trigger="sse:message"
          hx-indicator="#loader">
         {{block "playlist-list" .}}
             {{range .Playlists}}
-                <div class="group relative">
+                <div class="group relative z-0">
                     <div class="aspect-h-1 aspect-w-1 overflow-hidden rounded-md bg-gray-200 drop-shadow-sm group-hover:opacity-75 active:blur-sm">
                         <img src="{{.Img}}"
                              hx-get="{{ printf "/%s/select-room" .ID }}"
                              hx-target="body"
                              hx-swap="beforeend"
                              hx-indicator="#loader"
-                             class="h-full w-full object-cover object-center lg:h-full lg:w-full"
                              alt="playlist cover"/>
                     </div>
                 </div>
             {{end}}
         {{end}}
+
     </div>
 </div>
 
-{{template "loader.gohtml" .}}
+{{template "footer" .}}
 
-{{template "footer.gohtml" .}}
+{{template "loader" .}}
+

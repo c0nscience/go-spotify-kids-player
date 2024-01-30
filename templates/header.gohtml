@@ -1,19 +1,22 @@
-<!DOCTYPE html>
-<head>
-    <meta charset="UTF-8"/>
-    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+{{define "header"}}
+    <!DOCTYPE html>
+    <head>
+        <meta charset="UTF-8"/>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
 
-    <link rel="stylesheet" href="/public/css/main.css"/>
-    <link rel="apple-touch-icon" sizes="180x180" href="/public/icons/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/public/icons/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/public/icons/favicon-16x16.png">
-    <link rel="manifest" href="/public/manifest.json"/>
-    <script src="/public/js/htmx.min.js"></script>
-    <script src="https://unpkg.com/htmx.org@1.9.10/dist/ext/sse.js"></script>
-    <script src="https://unpkg.com/hyperscript.org@0.9.12/dist/_hyperscript.min.js"></script>
+        <link rel="stylesheet" href="/public/css/main.css"/>
+        <link rel="apple-touch-icon" sizes="180x180" href="/public/icons/apple-touch-icon.png">
+        <link rel="icon" type="image/png" sizes="32x32" href="/public/icons/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="/public/icons/favicon-16x16.png">
+        <link rel="manifest" href="/public/manifest.json"/>
+        <script src="/public/js/htmx.min.js"></script>
+        <script src="https://unpkg.com/htmx.org@1.9.10/dist/ext/sse.js"></script>
+        <script src="https://unpkg.com/hyperscript.org@0.9.12/dist/_hyperscript.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
 
-    <title>goSKiP - go Spotify Kids Player</title>
-</head>
-<body>
-<main class="bg-white mx-auto max-w-2xl px-10 py-6 sm:px-6 sm:py-24 lg:max-w-7xl lg:px-8">
+        <title>goSKiP - go Spotify Kids Player</title>
+    </head>
+    <body>
+    <main class="bg-black mx-auto max-w-2xl px-10 py-2 sm:px-6 sm:py-24 lg:max-w-7xl lg:px-8">
+{{end}}

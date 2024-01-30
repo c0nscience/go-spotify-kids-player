@@ -15,6 +15,12 @@ type PlaylistListViewModel struct {
 	Playing bool
 }
 
+type PlayerViewModel struct {
+	ID    string
+	Img   string
+	Rooms []string
+}
+
 func ListView(s store.Store) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var playlists []playlist.Playlist
@@ -36,6 +42,11 @@ func ListView(s store.Store) gin.HandlerFunc {
 
 		c.HTML(http.StatusOK, "list.gohtml", gin.H{
 			"Playlists": viewModels,
+			"Player": PlayerViewModel{
+				ID:    viewModels[0].ID,
+				Img:   viewModels[0].Img,
+				Rooms: availableRooms,
+			},
 		})
 	}
 }

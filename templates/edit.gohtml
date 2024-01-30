@@ -1,4 +1,4 @@
-{{template "header.gohtml" .}}
+{{template "header" .}}
 
 <form hx-post="/add"
       hx-target="#playlist-list"
@@ -58,6 +58,6 @@
     {{end}}
 </ul>
 
-{{template "loader.gohtml" .}}
+{{template "loader" .}}
 
-{{template "footer.gohtml" .}}
+{{template "footer" .}}

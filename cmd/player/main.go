@@ -4,10 +4,12 @@ import (
 	"context"
 	"errors"
 	"github.com/gin-gonic/gin"
+	"github.com/gorilla/websocket"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	spotifyapi "github.com/zmb3/spotify/v2"
 	"github.com/zmb3/spotify/v2/auth"
+	"go-spotify-kids-player/pkg/ha"
 	"go-spotify-kids-player/pkg/handlers"
 	"go-spotify-kids-player/pkg/playlist"
 	"go-spotify-kids-player/pkg/store"
@@ -26,9 +28,6 @@ func init() {
 }
 
 func main() {
-	//dir, _ := os.Getwd()
-	//log.Info().Msgf("pwd: %s", dir)
-	//return
 	ctx := context.Background()
 	config := &clientcredentials.Config{
 		ClientID:     os.Getenv("SPOTIFY_ID"),
@@ -37,6 +36,11 @@ func main() {
 	}
 	httpClient := config.Client(ctx)
 	syCli := spotifyapi.New(httpClient, spotifyapi.WithAcceptLanguage("DE"))
+
+	msgChan := ha.Listen()
+	ha.Handle(msgChan)
+
+	defer ha.WebsocketConnection.Close()
 
 	dbUri := os.Getenv("DB_URI")
 	dbName := os.Getenv("DB_NAME")
@@ -80,6 +84,8 @@ func main() {
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
 	log.Info().Msg("Shutdown Server ...")
+
+	_ = ha.WebsocketConnection.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
 
 	ctx, cancel := context.WithTimeout(context.Background(), 500*time.Millisecond)
 	defer cancel()

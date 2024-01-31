@@ -46,7 +46,7 @@ func entityIds(rooms []string) []string {
 	return res
 }
 
-func url(service Service) string {
+func urlFor(service Service) string {
 	return fmt.Sprintf("%s/api/services/media_player/%s", host, service)
 }
 
@@ -83,7 +83,7 @@ func Play(contentId string, rooms []string) error {
 		Enqueue:          "replace",
 	}
 
-	return sendRequest(http.MethodPost, url(PlayService), &reqBody)
+	return sendRequest(http.MethodPost, urlFor(PlayService), &reqBody)
 }
 
 func Stop(rooms []string) error {
@@ -91,7 +91,7 @@ func Stop(rooms []string) error {
 		EntityId: entityIds(rooms),
 	}
 
-	return sendRequest(http.MethodPost, url(StopService), &reqBody)
+	return sendRequest(http.MethodPost, urlFor(StopService), &reqBody)
 }
 
 func Join(rooms []string) error {
@@ -102,7 +102,7 @@ func Join(rooms []string) error {
 		GroupMembers: ids,
 	}
 
-	return sendRequest(http.MethodPost, url(JoinService), &reqBody)
+	return sendRequest(http.MethodPost, urlFor(JoinService), &reqBody)
 }
 
 func Unjoin(rooms []string) error {
@@ -110,5 +110,5 @@ func Unjoin(rooms []string) error {
 		EntityId: entityIds(rooms),
 	}
 
-	return sendRequest(http.MethodPost, url(UnjoinService), &reqBody)
+	return sendRequest(http.MethodPost, urlFor(UnjoinService), &reqBody)
 }

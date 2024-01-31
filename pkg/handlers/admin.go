@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/rs/zerolog/log"
 	spotifyapi "github.com/zmb3/spotify/v2"
 	"go-spotify-kids-player/pkg/playlist"
 	"go-spotify-kids-player/pkg/spotify"
@@ -52,14 +51,10 @@ func Add(cli *spotifyapi.Client, st store.Store) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		u := c.PostForm("url")
 
-		log.Info().Msgf("value: %v", u)
-
 		urls := strings.Split(u, " ")
 		var models []EditListViewModel
 		for _, u := range urls {
-			log.Info().Msgf("line: %s", u)
 			spotifyId := spotify.GetIdFrom(u)
-			log.Info().Msgf("spotifyId: %s", spotifyId)
 
 			album, err := spotify.GetAlbum(c, cli, spotifyId)
 			if err != nil {
@@ -77,20 +72,25 @@ func Add(cli *spotifyapi.Client, st store.Store) gin.HandlerFunc {
 				artistNames = append(artistNames, artist.Name)
 			}
 
+			var tracks []string
+			for _, track := range album.Tracks.Tracks {
+				tracks = append(tracks, string(track.URI))
+			}
+
 			pl := &playlist.Playlist{
 				Url:       u,
 				Name:      album.Name,
 				Img:       imgUrl,
 				SpotifyID: spotifyId,
 				Artists:   artistNames,
+				Tracks:    tracks,
 			}
 
-			id, err := st.Save(c, pl)
+			err = st.Save(c, pl)
 			if err != nil {
 				_ = c.Error(err)
 				return
 			}
-			pl.ID = id.(primitive.ObjectID)
 
 			model := EditListViewModel{
 				ID:        pl.ID.Hex(),

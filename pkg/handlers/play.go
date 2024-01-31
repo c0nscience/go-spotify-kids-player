@@ -98,10 +98,10 @@ func Play(s store.Store) gin.HandlerFunc {
 
 		for _, p := range playing {
 			p.Playing = false
-			_, _ = s.Save(c, &p)
+			_ = s.Save(c, &p)
 		}
 
-		_, err = s.Save(c, &pl)
+		err = s.Save(c, &pl)
 		if err != nil {
 			_ = c.Error(err)
 			return

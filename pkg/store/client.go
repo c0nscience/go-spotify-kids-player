@@ -14,7 +14,7 @@ import (
 type Store interface {
 	Disconnect(ctx context.Context) error
 	//Create(ctx context.Context, userId string, d interface{}) (interface{}, error)
-	Save(ctx context.Context, d HasObjectId) (interface{}, error)
+	Save(ctx context.Context, d HasObjectId) error
 	FindOne(ctx context.Context, filter interface{}, rec interface{}) error
 	Find(ctx context.Context, filter interface{}, sort interface{}, rec interface{}) error
 	//DeleteAll(ctx context.Context, userId string) (int64, error)
@@ -56,7 +56,7 @@ func New(uri, db string, collection CollectionName) (Store, error) {
 	}, err
 }
 
-func (me *mongoDbStore) Save(ctx context.Context, d HasObjectId) (interface{}, error) {
+func (me *mongoDbStore) Save(ctx context.Context, d HasObjectId) error {
 	opts := options.
 		FindOneAndUpdate().
 		SetUpsert(true).
@@ -68,16 +68,7 @@ func (me *mongoDbStore) Save(ctx context.Context, d HasObjectId) (interface{}, e
 	}
 	res := me.coll.FindOneAndUpdate(ctx, bson.M{"_id": objectId}, bson.D{{Key: "$set", Value: d}}, opts)
 
-	if res.Err() != nil {
-		return nil, res.Err()
-	}
-
-	var s bson.M
-	err := res.Decode(&s)
-	if err != nil {
-		return nil, err
-	}
-	return s["_id"], nil
+	return res.Err()
 }
 
 func (me *mongoDbStore) Find(ctx context.Context, filter interface{}, sort interface{}, rec interface{}) error {

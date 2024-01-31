@@ -7,6 +7,13 @@ import (
 
 var Collection store.CollectionName = "playlist"
 
+type Track struct {
+	SpotifyID string `bson:"spotifyID"`
+	Name      string `bson:"name"`
+	Number    int    `bson:"number"`
+	Uri       string `bson:"uri"`
+}
+
 type Playlist struct {
 	ID        primitive.ObjectID `bson:"_id,omitempty"`
 	Name      string             `bson:"name"`
@@ -16,6 +23,7 @@ type Playlist struct {
 	Artists   []string           `bson:"artists"`
 	PlayCount int                `bson:"playCount"`
 	Playing   bool               `bson:"playing"`
+	Tracks    []string           `bson:"tracks"`
 }
 
 func (p *Playlist) ObjectId() primitive.ObjectID {

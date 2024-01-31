@@ -21,6 +21,11 @@ func Switch() gin.HandlerFunc {
 			wait for target room to start playing
 			wait another grace-period
 			remove previous room from group
+			OR
+			pause current room
+			find what is currently playing
+			set target to currently played track and seek to position
+			play in target room
 		*/
 
 	}

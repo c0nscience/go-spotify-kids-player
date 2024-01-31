@@ -1,63 +1,82 @@
-{{template "header" .}}
+<!DOCTYPE html>
+<head>
+    <meta charset="UTF-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
 
-<form hx-post="/add"
-      hx-target="#playlist-list"
-      hx-swap="beforeend"
-      hx-indicator="#loader"
-      _="on htmx:afterRequest set #url.value to ''">
-    <div class="grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
-        <div class="sm:col-span-4">
-            <label for="url" class="block text-sm font-medium leading-6 text-gray-900">Spotify Share URL</label>
-            <div class="mt-2">
-                <div class="flex rounded-md shadow-sm ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600 sm:max-w-md">
-                    <input type="text"
-                           name="url"
-                           id="url"
-                           class="block flex-1 border-0 bg-transparent py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6">
+    <link rel="stylesheet" href="/public/css/main.css"/>
+    <link rel="apple-touch-icon" sizes="180x180" href="/public/icons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/public/icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/public/icons/favicon-16x16.png">
+    <link rel="manifest" href="/public/manifest.json"/>
+    <script src="/public/js/htmx.min.js"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.10/dist/ext/sse.js"></script>
+    <script src="https://unpkg.com/hyperscript.org@0.9.12/dist/_hyperscript.min.js"></script>
+
+    <title>goSKiP - go Spotify Kids Player</title>
+</head>
+<body>
+<main class="bg-white flex flex-col h-svh mx-auto max-w-2xl px-10 py-6 sm:px-6 sm:py-24 lg:max-w-7xl lg:px-8">
+
+    <form hx-post="/add"
+          hx-target="#playlist-list"
+          hx-swap="beforeend"
+          hx-indicator="#loader"
+          _="on htmx:afterRequest set #url.value to ''">
+        <div class="grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
+            <div class="sm:col-span-4">
+                <label for="url" class="block text-sm font-medium leading-6 text-gray-900">Spotify Share URL</label>
+                <div class="mt-2">
+                    <div class="flex rounded-md shadow-sm ring-1 ring-inset ring-gray-300 focus-within:ring-2 focus-within:ring-inset focus-within:ring-indigo-600 sm:max-w-md">
+                        <input type="text"
+                               name="url"
+                               id="url"
+                               class="block flex-1 border-0 bg-transparent py-1.5 pl-1 text-gray-900 placeholder:text-gray-400 focus:ring-0 sm:text-sm sm:leading-6">
+                    </div>
+
                 </div>
-
             </div>
         </div>
-    </div>
-    <div class="mt-6 flex items-center gap-x-6">
-        <button type="submit"
-                class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
-            Add
-        </button>
-        <span>{{len .Playlists}} Playlisten</span>
-    </div>
-</form>
+        <div class="mt-6 flex items-center gap-x-6">
+            <button type="submit"
+                    class="rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+                Add
+            </button>
+            <span>{{len .Playlists}} Playlisten</span>
+        </div>
+    </form>
 
-<ul id="playlist-list" role="list" class="divide-y divide-gray-100">
-    {{block "edit-list-entries" .}}
-        {{range .Playlists}}
-            <li id="{{printf "entry-%s" .ID}}" class="flex justify-between gap-x-6 py-5">
-                <div class="flex w-full gap-x-4 items-center">
-                    <img class="h-12 w-12 flex-none rounded-md bg-gray-50"
-                         src="{{.Img}}"
-                         alt="">
-                    <div class="text-md text-gray-900">{{.PlayCount}}</div>
-                    <div class="min-w-0 flex-auto grow">
-                        <p class="text-l font-semibold leading-6 text-gray-900">{{.Name}}</p>
-                        <p class="mt-1 truncate text-xs leading-5 text-gray-500">{{join .Artists ", "}}</p>
+    <ul id="playlist-list" role="list" class="overflow-y-scroll hide-scrollbar flex-1 divide-y divide-gray-100">
+        {{block "edit-list-entries" .}}
+            {{range .Playlists}}
+                <li id="{{printf "entry-%s" .ID}}" class="flex justify-between gap-x-6 py-5">
+                    <div class="flex w-full gap-x-4 items-center">
+                        <img class="h-12 w-12 flex-none rounded-md bg-gray-50"
+                             src="{{.Img}}"
+                             alt="">
+                        <div class="text-md text-gray-900">{{.PlayCount}}</div>
+                        <div class="min-w-0 flex-auto grow">
+                            <p class="text-l font-semibold leading-6 text-gray-900">{{.Name}}</p>
+                            <p class="mt-1 truncate text-xs leading-5 text-gray-500">{{join .Artists ", "}}</p>
+                        </div>
+                        <button hx-delete="{{printf "/%s/delete" .ID}}"
+                                hx-target="{{printf "#entry-%s" .ID}}"
+                                hx-swap="delete"
+                                hx-confirm="Moechtest du den Eintrag wirklich loeschen?"
+                                class="h-12 w-12 rounded-md bg-slate-900 fill-red-50 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
+                                 class="w-6 h-6">
+                                <path fill-rule="evenodd"
+                                      d="M16.5 4.478v.227a48.816 48.816 0 0 1 3.878.512.75.75 0 1 1-.256 1.478l-.209-.035-1.005 13.07a3 3 0 0 1-2.991 2.77H8.084a3 3 0 0 1-2.991-2.77L4.087 6.66l-.209.035a.75.75 0 0 1-.256-1.478A48.567 48.567 0 0 1 7.5 4.705v-.227c0-1.564 1.213-2.9 2.816-2.951a52.662 52.662 0 0 1 3.369 0c1.603.051 2.815 1.387 2.815 2.951Zm-6.136-1.452a51.196 51.196 0 0 1 3.273 0C14.39 3.05 15 3.684 15 4.478v.113a49.488 49.488 0 0 0-6 0v-.113c0-.794.609-1.428 1.364-1.452Zm-.355 5.945a.75.75 0 1 0-1.5.058l.347 9a.75.75 0 1 0 1.499-.058l-.346-9Zm5.48.058a.75.75 0 1 0-1.498-.058l-.347 9a.75.75 0 0 0 1.5.058l.345-9Z"
+                                      clip-rule="evenodd"/>
+                            </svg>
+                        </button>
                     </div>
-                    <button hx-delete="{{printf "/%s/delete" .ID}}"
-                            hx-target="{{printf "#entry-%s" .ID}}"
-                            hx-swap="delete"
-                            hx-confirm="Moechtest du den Eintrag wirklich loeschen?"
-                            class="h-12 w-12 rounded-md bg-slate-900 fill-red-50 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
-                            <path fill-rule="evenodd"
-                                  d="M16.5 4.478v.227a48.816 48.816 0 0 1 3.878.512.75.75 0 1 1-.256 1.478l-.209-.035-1.005 13.07a3 3 0 0 1-2.991 2.77H8.084a3 3 0 0 1-2.991-2.77L4.087 6.66l-.209.035a.75.75 0 0 1-.256-1.478A48.567 48.567 0 0 1 7.5 4.705v-.227c0-1.564 1.213-2.9 2.816-2.951a52.662 52.662 0 0 1 3.369 0c1.603.051 2.815 1.387 2.815 2.951Zm-6.136-1.452a51.196 51.196 0 0 1 3.273 0C14.39 3.05 15 3.684 15 4.478v.113a49.488 49.488 0 0 0-6 0v-.113c0-.794.609-1.428 1.364-1.452Zm-.355 5.945a.75.75 0 1 0-1.5.058l.347 9a.75.75 0 1 0 1.499-.058l-.346-9Zm5.48.058a.75.75 0 1 0-1.498-.058l-.347 9a.75.75 0 0 0 1.5.058l.345-9Z"
-                                  clip-rule="evenodd"/>
-                        </svg>
-                    </button>
-                </div>
-            </li>
+                </li>
+            {{end}}
         {{end}}
-    {{end}}
-</ul>
+    </ul>
 
+</main>
 {{template "loader" .}}
-
-{{template "footer" .}}
+</body>

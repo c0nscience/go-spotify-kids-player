@@ -1,33 +1,130 @@
-{{template "header" .}}
+<!DOCTYPE html>
+<head>
+    <meta charset="UTF-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
 
-{{template "player" .Player}}
+    <link rel="stylesheet" href="/public/css/main.css"/>
+    <link rel="apple-touch-icon" sizes="180x180" href="/public/icons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/public/icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/public/icons/favicon-16x16.png">
+    <link rel="manifest" href="/public/manifest.json"/>
+    <script src="/public/js/htmx.min.js"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.10/dist/ext/sse.js"></script>
+    <script src="https://unpkg.com/hyperscript.org@0.9.12/dist/_hyperscript.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
 
-<div hx-ext="sse"
-     sse-connect="/sse">
-
-    <div class="mt-2 grid grid-cols-2 gap-x-4 gap-y-2 overflow-y-scroll h-svh lg:grid-cols-4 xl:gap-x-8"
-         hx-get="/update-list"
-         hx-trigger="sse:message"
-         hx-indicator="#loader">
-        {{block "playlist-list" .}}
-            {{range .Playlists}}
-                <div class="group relative z-0">
-                    <div class="aspect-h-1 aspect-w-1 overflow-hidden rounded-md bg-gray-200 drop-shadow-sm group-hover:opacity-75 active:blur-sm">
-                        <img src="{{.Img}}"
-                             hx-get="{{ printf "/%s/select-room" .ID }}"
-                             hx-target="body"
-                             hx-swap="beforeend"
-                             hx-indicator="#loader"
-                             alt="playlist cover"/>
+    <title>goSKiP - go Spotify Kids Player</title>
+</head>
+<body>
+<div class="flex flex-col h-svh">
+    {{block "player" .}}
+        <header class="bg-slate-700 pl-4 py-4 rounded-md drop-shadow-sm grid grid-cols-5 items-center">
+            <img src="{{.Player.Img}}"
+                 id="player-img"
+                 data-id="{{.Player.ID}}"
+                 class="col-span-1 p-2 draggable z-50 touch-none select-none"
+                 alt="playlist cover"/>
+            <div class="col-span-4 grid grid-cols-2 justify-items-stretch z-0">
+                {{range .Player.Rooms}}
+                    <div class="flex items-center grayscale justify-center rounded-md dropzone"
+                         hx-get="/switch"
+                         hx-trigger="int:drop"
+                         hx-indicator="#loader"
+                         hx-vals="js:{id: event.detail.id, room: '{{.}}'}">
+                        <img class="w-20 h-20 rounded-md active:blur-sm"
+                             id="{{.}}-img"
+                             src="/public/icons/rooms/{{.}}.png"
+                             alt="colored lego bricks">
                     </div>
-                </div>
+                {{end}}
+            </div>
+            <script>
+              function dragMoveListener(event) {
+                const target = event.target
+                const x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx
+                const y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy
+
+                target.style.transform = 'translate(' + x + 'px, ' + y + 'px)'
+
+                target.setAttribute('data-x', x)
+                target.setAttribute('data-y', y)
+              }
+
+              htmx.onLoad(function () {
+                interact('.draggable')
+                  .draggable({
+                    listeners: {
+                      move: dragMoveListener,
+                      end(event) {
+                        let target = event.currentTarget
+                        target.setAttribute('data-x', 0)
+                        target.setAttribute('data-y', 0)
+                        target.style.transform = 'translate(' + 0 + 'px, ' + 0 + 'px)'
+                      }
+                    }
+                  })
+
+                interact('.dropzone')
+                  .dropzone({
+                    accept: '#player-img',
+                    overlap: 0.30,
+                    ondropactivate: function (event) {
+                      event.target.classList.add('grayscale-0')
+                    },
+                    ondropdeactivate: function (event) {
+                      event.target.classList.remove('grayscale-0')
+                      event.target.classList.remove('bg-green-500')
+                    },
+                    ondragenter: function (event) {
+                      const draggableElement = event.relatedTarget
+                      const dropzoneElement = event.target
+
+                      dropzoneElement.classList.add('bg-green-500')
+                      // draggableElement.classList.add('opacity-15')
+                    },
+                    ondragleave: function (event) {
+                      const draggableElement = event.relatedTarget
+                      const dropzoneElement = event.target
+
+                      dropzoneElement.classList.remove('bg-green-500')
+                      // draggableElement.classList.remove('opacity-15')
+                    },
+                    ondrop: function (event) {
+                      htmx.trigger(event.target, 'int:drop', {
+                        id: event.relatedTarget.attributes["data-id"].value
+                      })
+                    }
+                  })
+              })
+            </script>
+        </header>
+    {{end}}
+    <main class="flex-1 overflow-y-scroll hide-scrollbar max-w-2xl px-10 py-2 sm:px-6 sm:py-24 lg:max-w-7xl lg:px-8"
+          hx-ext="sse"
+          sse-connect="/sse">
+
+        <div class="mt-2 grid grid-cols-2 gap-x-4 gap-y-2 lg:grid-cols-4 xl:gap-x-8"
+             hx-get="/update-list"
+             hx-trigger="sse:message"
+             hx-indicator="#loader">
+            {{block "playlist-list" .}}
+                {{range .Playlists}}
+                    <div class="group relative z-0">
+                        <div class="aspect-h-1 aspect-w-1 overflow-hidden rounded-md bg-gray-200 drop-shadow-sm group-hover:opacity-75 active:blur-sm">
+                            <img src="{{.Img}}"
+                                 hx-get="{{ printf "/%s/select-room" .ID }}"
+                                 hx-target="body"
+                                 hx-swap="beforeend"
+                                 hx-indicator="#loader"
+                                 alt="playlist cover"/>
+                        </div>
+                    </div>
+                {{end}}
             {{end}}
-        {{end}}
-
-    </div>
+        </div>
+    </main>
+{{template "attribution" .}}
 </div>
-
-{{template "footer" .}}
-
 {{template "loader" .}}
-
+</body>

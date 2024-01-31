@@ -791,12 +791,20 @@ select {
   z-index: 50;
 }
 
+.col-span-1 {
+  grid-column: span 1 / span 1;
+}
+
 .col-span-2 {
   grid-column: span 2 / span 2;
 }
 
 .col-span-3 {
   grid-column: span 3 / span 3;
+}
+
+.col-span-4 {
+  grid-column: span 4 / span 4;
 }
 
 .mx-auto {
@@ -872,22 +880,6 @@ select {
 
 .h-full {
   height: 100%;
-}
-
-.h-screen {
-  height: 100vh;
-}
-
-.h-auto {
-  height: auto;
-}
-
-.h-dvh {
-  height: 100dvh;
-}
-
-.h-lvh {
-  height: 100lvh;
 }
 
 .h-svh {
@@ -980,6 +972,12 @@ select {
   touch-action: none;
 }
 
+.select-none {
+  -webkit-user-select: none;
+     -moz-user-select: none;
+          user-select: none;
+}
+
 .grid-cols-1 {
   grid-template-columns: repeat(1, minmax(0, 1fr));
 }
@@ -994,6 +992,10 @@ select {
 
 .grid-cols-5 {
   grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.flex-col {
+  flex-direction: column;
 }
 
 .content-stretch {
@@ -1219,6 +1221,11 @@ select {
   padding-bottom: 1.25rem;
 }
 
+.py-6 {
+  padding-top: 1.5rem;
+  padding-bottom: 1.5rem;
+}
+
 .pb-4 {
   padding-bottom: 1rem;
 }
@@ -1274,6 +1281,11 @@ select {
   color: rgb(107 114 128 / var(--tw-text-opacity));
 }
 
+.text-gray-600 {
+  --tw-text-opacity: 1;
+  color: rgb(75 85 99 / var(--tw-text-opacity));
+}
+
 .text-gray-900 {
   --tw-text-opacity: 1;
   color: rgb(17 24 39 / var(--tw-text-opacity));
@@ -1282,16 +1294,6 @@ select {
 .text-white {
   --tw-text-opacity: 1;
   color: rgb(255 255 255 / var(--tw-text-opacity));
-}
-
-.text-gray-800 {
-  --tw-text-opacity: 1;
-  color: rgb(31 41 55 / var(--tw-text-opacity));
-}
-
-.text-gray-600 {
-  --tw-text-opacity: 1;
-  color: rgb(75 85 99 / var(--tw-text-opacity));
 }
 
 .opacity-15 {
@@ -1352,6 +1354,21 @@ select {
   transition-duration: 150ms;
 }
 
+/* Hide scrollbar for Chrome, Safari, and Opera */
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for IE, Edge, and Firefox */
+
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
+}
+
 html, body {
   width: 100%;
   height: 100%;
@@ -1371,17 +1388,6 @@ body {
 
 .htmx-request.htmx-indicator {
   display: grid;
-}
-
-::backdrop {
-  background-image: linear-gradient(
-            45deg,
-            magenta,
-            rebeccapurple,
-            dodgerblue,
-            green
-    );
-  opacity: 0.75;
 }
 
 .placeholder\:text-gray-400::-moz-placeholder {

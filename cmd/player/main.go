@@ -63,12 +63,7 @@ func main() {
 	r.GET("/sse", handlers.SSE)
 	r.GET("/update-list", handlers.PartialList(playlistClient))
 	r.GET("/:id/select-room", handlers.RoomSelectionModal(playlistClient))
-	r.GET("/switch", func(c *gin.Context) {
-		id := c.Query("id")
-		room := c.Query("room")
-		log.Info().Msgf("go switch %s to %s", id, room)
-		c.Status(http.StatusNoContent)
-	})
+	r.GET("/switch", handlers.Switch())
 
 	srv := &http.Server{
 		Addr:    ":8080",

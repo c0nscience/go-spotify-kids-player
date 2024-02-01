@@ -20,7 +20,8 @@
                         {{range .Rooms}}
                             <div class="grid grid-cols-1">
                                 <label for="{{.}}" class="flex justify-center">
-                                    <img class="rounded-md grayscale active:blur-sm" id="{{.}}-img"
+                                    <img class="rounded-md grayscale active:blur-sm"
+                                         id="sel-{{.}}-img"
                                          src="/public/icons/rooms/{{.}}.png"
                                          alt="colored lego bricks">
                                 </label>
@@ -28,7 +29,7 @@
                                        value="{{.}}"
                                        type="checkbox"
                                        class="hidden"
-                                       _="on click toggle .grayscale on #{{.}}-img then toggle .bg-green-500 on #{{.}}-img">
+                                       _="on click toggle .grayscale on #sel-{{.}}-img then toggle .bg-green-500 on #sel-{{.}}-img">
                             </div>
                         {{end}}
                     </div>

@@ -106,7 +106,5 @@ func Play(s store.Store) gin.HandlerFunc {
 			_ = c.Error(err)
 			return
 		}
-
-		sendUpdateEvent("")
 	}
 }

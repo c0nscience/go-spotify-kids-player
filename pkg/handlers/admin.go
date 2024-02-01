@@ -5,6 +5,7 @@ import (
 	spotifyapi "github.com/zmb3/spotify/v2"
 	"go-spotify-kids-player/pkg/playlist"
 	"go-spotify-kids-player/pkg/spotify"
+	"go-spotify-kids-player/pkg/sse"
 	"go-spotify-kids-player/pkg/store"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -47,7 +48,7 @@ func EditView(s store.Store) gin.HandlerFunc {
 	}
 }
 
-func Add(cli *spotifyapi.Client, st store.Store) gin.HandlerFunc {
+func Add(stream *sse.Event, cli *spotifyapi.Client, st store.Store) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		u := c.PostForm("url")
 
@@ -106,11 +107,11 @@ func Add(cli *spotifyapi.Client, st store.Store) gin.HandlerFunc {
 			"Playlists": models,
 		})
 
-		sendUpdateEvent("")
+		stream.Message <- sse.UpdateListMessage()
 	}
 }
 
-func Delete(s store.Store) gin.HandlerFunc {
+func Delete(stream *sse.Event, s store.Store) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id := c.Param("id")
 		objectId, _ := primitive.ObjectIDFromHex(id)
@@ -122,6 +123,6 @@ func Delete(s store.Store) gin.HandlerFunc {
 		}
 
 		c.Status(http.StatusOK)
-		sendUpdateEvent("")
+		stream.Message <- sse.UpdateListMessage()
 	}
 }

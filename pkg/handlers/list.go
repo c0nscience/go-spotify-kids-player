@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"github.com/gin-gonic/gin"
+	"go-spotify-kids-player/pkg/player"
 	"go-spotify-kids-player/pkg/playlist"
 	"go-spotify-kids-player/pkg/store"
 	"go.mongodb.org/mongo-driver/bson"
@@ -16,9 +17,10 @@ type PlaylistListViewModel struct {
 }
 
 type PlayerViewModel struct {
-	ID    string
-	Img   string
-	Rooms []string
+	ID      string
+	Img     string
+	Playing bool
+	Rooms   []string
 }
 
 func ListView(s store.Store) gin.HandlerFunc {
@@ -40,12 +42,14 @@ func ListView(s store.Store) gin.HandlerFunc {
 			})
 		}
 
+		state := player.State()
 		c.HTML(http.StatusOK, "list.gohtml", gin.H{
 			"Playlists": viewModels,
 			"Player": PlayerViewModel{
-				ID:    viewModels[0].ID,
-				Img:   viewModels[0].Img,
-				Rooms: availableRooms,
+				ID:      state.ID,
+				Playing: state.Playing,
+				Img:     state.Img,
+				Rooms:   availableRooms,
 			},
 		})
 	}

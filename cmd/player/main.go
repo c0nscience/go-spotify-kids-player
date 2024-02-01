@@ -12,6 +12,7 @@ import (
 	"go-spotify-kids-player/pkg/ha"
 	"go-spotify-kids-player/pkg/handlers"
 	"go-spotify-kids-player/pkg/playlist"
+	"go-spotify-kids-player/pkg/sse"
 	"go-spotify-kids-player/pkg/store"
 	"golang.org/x/oauth2/clientcredentials"
 	"html/template"
@@ -37,17 +38,28 @@ func main() {
 	httpClient := config.Client(ctx)
 	syCli := spotifyapi.New(httpClient, spotifyapi.WithAcceptLanguage("DE"))
 
-	msgChan := ha.Listen()
-	ha.Handle(msgChan)
-
-	defer ha.WebsocketConnection.Close()
-
 	dbUri := os.Getenv("DB_URI")
 	dbName := os.Getenv("DB_NAME")
 	playlistClient, err := store.New(dbUri, dbName, playlist.Collection)
 	if err != nil {
 		log.Panic().Err(err).Msg("Could not create activity store")
 	}
+
+	stream := sse.NewServer()
+
+	msgChan := ha.Listen()
+	connectedChan := ha.Handle(stream, playlistClient, msgChan)
+	wsCtx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+	select {
+	case <-connectedChan:
+		log.Info().Msg("successfully connected to websocket api of home assistant")
+		cancel()
+	case <-wsCtx.Done():
+		log.Error().Msg("could not connect to websocket api of home assistant")
+	}
+
+	defer ha.WebsocketConnection.Close()
 
 	r := gin.Default()
 	r.Use(handlers.ErrorHandling)
@@ -62,12 +74,13 @@ func main() {
 	r.GET("/", handlers.ListView(playlistClient))
 	r.POST("/:id/play", handlers.Play(playlistClient))
 	r.GET("/edit", handlers.EditView(playlistClient))
-	r.POST("/add", handlers.Add(syCli, playlistClient))
-	r.DELETE("/:id/delete", handlers.Delete(playlistClient))
-	r.GET("/sse", handlers.SSE)
+	r.POST("/add", handlers.Add(stream, syCli, playlistClient))
+	r.DELETE("/:id/delete", handlers.Delete(stream, playlistClient))
+	r.GET("/sse", sse.HeadersMiddleware(), stream.ServeHTTP(), handlers.SSE)
 	r.GET("/update-list", handlers.PartialList(playlistClient))
 	r.GET("/:id/select-room", handlers.RoomSelectionModal(playlistClient))
 	r.GET("/switch", handlers.Switch())
+	r.GET("/player", handlers.Player())
 
 	srv := &http.Server{
 		Addr:    ":8080",
@@ -87,7 +100,7 @@ func main() {
 
 	_ = ha.WebsocketConnection.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
 
-	ctx, cancel := context.WithTimeout(context.Background(), 500*time.Millisecond)
+	ctx, cancel = context.WithTimeout(context.Background(), 500*time.Millisecond)
 	defer cancel()
 	if err := srv.Shutdown(ctx); err != nil {
 		log.Fatal().Err(err).Msgf("Server Shutdown failed")

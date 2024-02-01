@@ -41,8 +41,6 @@ func Listen() chan interface{} {
 			}
 
 			msgChan <- msg
-
-			log.Info().Msgf("received: %v", msg)
 		}
 	}()
 

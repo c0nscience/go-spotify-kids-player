@@ -17,96 +17,100 @@
     <title>goSKiP - go Spotify Kids Player</title>
 </head>
 <body>
-<div class="flex flex-col h-svh">
-    {{block "player" .}}
-        <header class="bg-slate-700 pl-4 py-4 rounded-md drop-shadow-sm grid grid-cols-5 items-center">
-            <img src="{{.Player.Img}}"
-                 id="player-img"
-                 data-id="{{.Player.ID}}"
-                 class="col-span-1 p-2 draggable z-50 touch-none select-none"
-                 alt="playlist cover"/>
-            <div class="col-span-4 grid grid-cols-2 justify-items-stretch z-0">
-                {{range .Player.Rooms}}
-                    <div class="flex items-center grayscale justify-center rounded-md dropzone"
-                         hx-get="/switch"
-                         hx-trigger="int:drop"
-                         hx-indicator="#loader"
-                         hx-vals="js:{id: event.detail.id, room: '{{.}}'}">
-                        <img class="w-20 h-20 rounded-md active:blur-sm"
-                             id="{{.}}-img"
-                             src="/public/icons/rooms/{{.}}.png"
-                             alt="colored lego bricks">
+<div class="flex flex-col h-svh"
+     hx-ext="sse"
+     sse-connect="/sse">
+    <div hx-get="/player"
+         hx-trigger="sse:update-player">
+        {{block "player" .}}
+            {{if .Player.Playing}}
+                <header class="bg-slate-700 pl-4 py-4 rounded-md drop-shadow-sm grid grid-cols-5 items-center animate-jump-in animate-ease-out">
+                    <img src="{{.Player.Img}}"
+                         id="player-img"
+                         data-id="{{.Player.ID}}"
+                         class="col-span-1 p-2 draggable z-50 touch-none select-none"
+                         alt="playlist cover"/>
+                    <div class="col-span-4 grid grid-cols-2 justify-items-stretch z-0">
+                        {{range .Player.Rooms}}
+                            <div class="flex items-center grayscale justify-center rounded-md dropzone"
+                                 hx-get="/switch"
+                                 hx-trigger="int:drop"
+                                 hx-indicator="#loader"
+                                 hx-vals="js:{id: event.detail.id, room: '{{.}}'}">
+                                <img class="w-20 h-20 rounded-md active:blur-sm"
+                                     id="{{.}}-img"
+                                     src="/public/icons/rooms/{{.}}.png"
+                                     alt="colored lego bricks">
+                            </div>
+                        {{end}}
                     </div>
-                {{end}}
-            </div>
-            <script>
-              function dragMoveListener(event) {
-                const target = event.target
-                const x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx
-                const y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy
+                    <script>
+                      function dragMoveListener(event) {
+                        const target = event.target
+                        const x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx
+                        const y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy
 
-                target.style.transform = 'translate(' + x + 'px, ' + y + 'px)'
+                        target.style.transform = 'translate(' + x + 'px, ' + y + 'px)'
 
-                target.setAttribute('data-x', x)
-                target.setAttribute('data-y', y)
-              }
-
-              htmx.onLoad(function () {
-                interact('.draggable')
-                  .draggable({
-                    listeners: {
-                      move: dragMoveListener,
-                      end(event) {
-                        let target = event.currentTarget
-                        target.setAttribute('data-x', 0)
-                        target.setAttribute('data-y', 0)
-                        target.style.transform = 'translate(' + 0 + 'px, ' + 0 + 'px)'
+                        target.setAttribute('data-x', x)
+                        target.setAttribute('data-y', y)
                       }
-                    }
-                  })
 
-                interact('.dropzone')
-                  .dropzone({
-                    accept: '#player-img',
-                    overlap: 0.30,
-                    ondropactivate: function (event) {
-                      event.target.classList.add('grayscale-0')
-                    },
-                    ondropdeactivate: function (event) {
-                      event.target.classList.remove('grayscale-0')
-                      event.target.classList.remove('bg-green-500')
-                    },
-                    ondragenter: function (event) {
-                      const draggableElement = event.relatedTarget
-                      const dropzoneElement = event.target
+                      htmx.onLoad(function () {
+                        interact('.draggable')
+                          .draggable({
+                            listeners: {
+                              move: dragMoveListener,
+                              end(event) {
+                                let target = event.currentTarget
+                                target.setAttribute('data-x', 0)
+                                target.setAttribute('data-y', 0)
+                                target.style.transform = 'translate(' + 0 + 'px, ' + 0 + 'px)'
+                              }
+                            }
+                          })
 
-                      dropzoneElement.classList.add('bg-green-500')
-                      // draggableElement.classList.add('opacity-15')
-                    },
-                    ondragleave: function (event) {
-                      const draggableElement = event.relatedTarget
-                      const dropzoneElement = event.target
+                        interact('.dropzone')
+                          .dropzone({
+                            accept: '#player-img',
+                            overlap: 0.30,
+                            ondropactivate: function (event) {
+                              event.target.classList.add('grayscale-0')
+                            },
+                            ondropdeactivate: function (event) {
+                              event.target.classList.remove('grayscale-0')
+                              event.target.classList.remove('bg-green-500')
+                            },
+                            ondragenter: function (event) {
+                              const draggableElement = event.relatedTarget
+                              const dropzoneElement = event.target
 
-                      dropzoneElement.classList.remove('bg-green-500')
-                      // draggableElement.classList.remove('opacity-15')
-                    },
-                    ondrop: function (event) {
-                      htmx.trigger(event.target, 'int:drop', {
-                        id: event.relatedTarget.attributes["data-id"].value
+                              dropzoneElement.classList.add('bg-green-500')
+                              // draggableElement.classList.add('opacity-15')
+                            },
+                            ondragleave: function (event) {
+                              const draggableElement = event.relatedTarget
+                              const dropzoneElement = event.target
+
+                              dropzoneElement.classList.remove('bg-green-500')
+                              // draggableElement.classList.remove('opacity-15')
+                            },
+                            ondrop: function (event) {
+                              htmx.trigger(event.target, 'int:drop', {
+                                id: event.relatedTarget.attributes['data-id'].value
+                              })
+                            }
+                          })
                       })
-                    }
-                  })
-              })
-            </script>
-        </header>
-    {{end}}
-    <main class="flex-1 overflow-y-scroll hide-scrollbar max-w-2xl px-10 py-2 sm:px-6 sm:py-24 lg:max-w-7xl lg:px-8"
-          hx-ext="sse"
-          sse-connect="/sse">
-
+                    </script>
+                </header>
+            {{end}}
+        {{end}}
+    </div>
+    <main class="flex-1 overflow-y-scroll hide-scrollbar max-w-2xl px-10 py-2 sm:px-6 sm:py-24 lg:max-w-7xl lg:px-8">
         <div class="mt-2 grid grid-cols-2 gap-x-4 gap-y-2 lg:grid-cols-4 xl:gap-x-8"
              hx-get="/update-list"
-             hx-trigger="sse:message"
+             hx-trigger="sse:update-list"
              hx-indicator="#loader">
             {{block "playlist-list" .}}
                 {{range .Playlists}}
@@ -124,7 +128,7 @@
             {{end}}
         </div>
     </main>
-{{template "attribution" .}}
+    {{template "attribution" .}}
 </div>
 {{template "loader" .}}
 </body>

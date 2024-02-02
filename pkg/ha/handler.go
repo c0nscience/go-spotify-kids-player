@@ -82,16 +82,18 @@ func Handle(stream *sse.Event, store store.Store, msgChan chan interface{}) chan
 					s, _ := state(ns)
 					log.Info().Msgf("found: %s %s %s on %s", pl.Name, pl.ID.Hex(), s, id)
 
+					payload := []string{pl.ID.Hex(), pl.Img, id}
 					currentState := player.State()
 					if s == "playing" && !currentState.Playing {
 						player.Reduce(player.Action{
 							Type:    player.PlayType,
-							Payload: []string{pl.ID.Hex(), pl.Img},
+							Payload: payload,
 						})
 						stream.Message <- sse.UpdatePlayerMessage()
 					} else if s == "paused" && currentState.Playing {
 						player.Reduce(player.Action{
-							Type: player.StopType,
+							Type:    player.StopType,
+							Payload: payload,
 						})
 						stream.Message <- sse.UpdatePlayerMessage()
 					}

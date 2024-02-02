@@ -28,5 +28,13 @@ func Switch() gin.HandlerFunc {
 			play in target room
 		*/
 
+		//state := player.State()
+		//
+		//err := ha.Join(append(state.Room, room))
+		//if err != nil {
+		//	_ = c.Error(err)
+		//	return
+		//}
+
 	}
 }

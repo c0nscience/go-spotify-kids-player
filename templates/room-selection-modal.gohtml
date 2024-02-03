@@ -16,7 +16,7 @@
                               class="h-1/2 w-1/2 object-center rounded-md"
                               alt="playlist cover"/>
                     </div>
-                    <div class="px-4 py-3 grid gap-2 grid-cols-4 justify-items-stretch">
+                    <div class="px-4 py-3 grid gap-2 grid-cols-{{len .Rooms}} justify-items-stretch">
                         {{range .Rooms}}
                             <div class="grid grid-cols-1">
                                 <label for="{{.}}" class="flex justify-center">
@@ -26,9 +26,15 @@
                                 </label>
                                 <input id="{{.}}" name="rooms[]"
                                        value="{{.}}"
-                                       type="checkbox"
+                                       type="radio"
                                        class="hidden"
-                                       _="on click toggle .grayscale on #{{.}}-img then toggle .bg-green-500 on #{{.}}-img">
+                                       _="on change from closest <form/>
+                                            if I match <:checked/> then
+                                                remove .grayscale from #{{.}}-img
+                                            else
+                                                add .grayscale to #{{.}}-img
+                                            end"
+                                >
                             </div>
                         {{end}}
                     </div>

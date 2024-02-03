@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"github.com/gin-gonic/gin"
+	"go-spotify-kids-player/pkg/ha"
 	"go-spotify-kids-player/pkg/playlist"
 	"go-spotify-kids-player/pkg/store"
 	"go.mongodb.org/mongo-driver/bson"
@@ -81,10 +82,12 @@ func RoomSelectionModal(s store.Store) gin.HandlerFunc {
 			return
 		}
 
+		rooms, _ := ha.AvailableRooms()
+
 		c.HTML(http.StatusOK, "room-selection-modal.gohtml", gin.H{
 			"ID":    id,
 			"Img":   pl.Img,
-			"Rooms": availableRooms,
+			"Rooms": rooms,
 		})
 	}
 }

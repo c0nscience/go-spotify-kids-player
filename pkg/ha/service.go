@@ -5,8 +5,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
+	"strings"
 )
 
 type playRequest struct {
@@ -50,29 +52,39 @@ func url(service Service) string {
 	return fmt.Sprintf("%s/api/services/media_player/%s", host, service)
 }
 
-func sendRequest(method string, url string, reqBody interface{}) error {
-	b, err := json.Marshal(&reqBody)
-	if err != nil {
-		return err
+func sendRequest(method string, url string, reqBody interface{}) (io.ReadCloser, error) {
+	var req *http.Request
+	if reqBody != nil {
+		b, err := json.Marshal(&reqBody)
+		if err != nil {
+			return nil, err
+		}
+
+		req, err = http.NewRequest(method, url, bytes.NewReader(b))
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		r, err := http.NewRequest(method, url, nil)
+		if err != nil {
+			return nil, err
+		}
+		req = r
 	}
 
-	req, err := http.NewRequest(method, url, bytes.NewReader(b))
 	req.Header.Set("content-type", "application/json")
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
-	if err != nil {
-		return err
-	}
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if resp.StatusCode > 200 {
-		return errors.Join(fmt.Errorf("%s request to %s", method, url), err)
+		return nil, errors.Join(fmt.Errorf("%s request to %s", method, url), err)
 	}
 
-	return nil
+	return resp.Body, nil
 }
 
 func Play(contentId string, rooms []string) error {
@@ -83,7 +95,8 @@ func Play(contentId string, rooms []string) error {
 		Enqueue:          "replace",
 	}
 
-	return sendRequest(http.MethodPost, url(PlayService), &reqBody)
+	_, err := sendRequest(http.MethodPost, url(PlayService), &reqBody)
+	return err
 }
 
 func Stop(rooms []string) error {
@@ -91,7 +104,33 @@ func Stop(rooms []string) error {
 		EntityId: entityIds(rooms),
 	}
 
-	return sendRequest(http.MethodPost, url(StopService), &reqBody)
+	_, err := sendRequest(http.MethodPost, url(StopService), &reqBody)
+	return err
+}
+
+func AvailableRooms() ([]string, error) {
+
+	bdy, err := sendRequest(http.MethodGet, fmt.Sprintf("%s/api/states", host), nil)
+	respBdy := []map[string]interface{}{}
+	json.NewDecoder(bdy).Decode(&respBdy)
+
+	res := []string{}
+
+	for _, m := range respBdy {
+		id, ok := m["entity_id"].(string)
+		if !ok || !strings.HasPrefix(id, "media_player") {
+			continue
+		}
+
+		state, ok := m["state"].(string)
+		if !ok || state == "unavailable" {
+			continue
+		}
+
+		res = append(res, strings.TrimPrefix(id, "media_player."))
+	}
+
+	return res, err
 }
 
 func Join(rooms []string) error {
@@ -102,7 +141,8 @@ func Join(rooms []string) error {
 		GroupMembers: ids,
 	}
 
-	return sendRequest(http.MethodPost, url(JoinService), &reqBody)
+	_, err := sendRequest(http.MethodPost, url(JoinService), &reqBody)
+	return err
 }
 
 func Unjoin(rooms []string) error {
@@ -110,5 +150,6 @@ func Unjoin(rooms []string) error {
 		EntityId: entityIds(rooms),
 	}
 
-	return sendRequest(http.MethodPost, url(UnjoinService), &reqBody)
+	_, err := sendRequest(http.MethodPost, url(UnjoinService), &reqBody)
+	return err
 }

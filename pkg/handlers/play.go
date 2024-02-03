@@ -57,20 +57,20 @@ func Play(s store.Store) gin.HandlerFunc {
 				return
 			}
 
-			err = ha.Unjoin(lastPlayedRooms)
-			if err != nil {
-				_ = c.Error(err)
-				return
-			}
+			//err = ha.Unjoin(lastPlayedRooms)
+			//if err != nil {
+			//	_ = c.Error(err)
+			//	return
+			//}
 		}
 
-		if len(form.Rooms) > 1 {
-			err := ha.Join(form.Rooms)
-			if err != nil {
-				_ = c.Error(err)
-				return
-			}
-		}
+		//if len(form.Rooms) > 1 {
+		//	err := ha.Join(form.Rooms)
+		//	if err != nil {
+		//		_ = c.Error(err)
+		//		return
+		//	}
+		//}
 
 		err = ha.Play(pl.Url, form.Rooms)
 		if err != nil {
@@ -82,30 +82,29 @@ func Play(s store.Store) gin.HandlerFunc {
 
 		pl.PlayCount = pl.PlayCount + 1
 		pl.Playing = true
-
-		c.Status(http.StatusNoContent)
-
-		var playing []playlist.Playlist
-		err = s.Find(c, bson.M{"playing": true}, nil, &playing)
-		if err != nil {
-			_ = c.Error(err)
-			return
-		}
-
-		//todo not there yet - we need to avoid that it can be started every where
-		// before starting we should stop playing on the other rooms
-		// then start the playlist on the newly selected room
-
-		for _, p := range playing {
-			p.Playing = false
-			_, _ = s.Save(c, &p)
-		}
-
 		_, err = s.Save(c, &pl)
 		if err != nil {
 			_ = c.Error(err)
 			return
 		}
+
+		c.Status(http.StatusNoContent)
+
+		//var playing []playlist.Playlist
+		//err = s.Find(c, bson.M{"playing": true}, nil, &playing)
+		//if err != nil {
+		//	_ = c.Error(err)
+		//	return
+		//}
+
+		//todo not there yet - we need to avoid that it can be started every where
+		// before starting we should stop playing on the other rooms
+		// then start the playlist on the newly selected room
+
+		//for _, p := range playing {
+		//	p.Playing = false
+		//	_, _ = s.Save(c, &p)
+		//}
 
 		sendUpdateEvent("")
 	}

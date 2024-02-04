@@ -28,10 +28,14 @@ var (
 func Play(s store.Store) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		id := c.Param("id")
-		objectId, _ := primitive.ObjectIDFromHex(id)
+		objectId, err := primitive.ObjectIDFromHex(id)
+		if err != nil {
+			_ = c.Error(err)
+			return
+		}
 
 		var form roomSelectionForm
-		err := c.ShouldBind(&form)
+		err = c.ShouldBind(&form)
 		if err != nil {
 			_ = c.Error(err)
 			return

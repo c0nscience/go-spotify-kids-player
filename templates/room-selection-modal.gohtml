@@ -7,7 +7,7 @@
     <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
     <form hx-post="{{ printf "/%s/play" .ID }}"
           hx-indicator="#loader"
-          _="on htmx:afterRequest trigger closeDialog">
+          _="on htmx:afterRequest or htmx:responseError trigger closeDialog">
         <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
             <div class="flex min-h-full justify-center text-center items-end p-4">
                 <div class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all my-8 w-full max-w-lg">

@@ -82,7 +82,11 @@ func RoomSelectionModal(s store.Store) gin.HandlerFunc {
 			return
 		}
 
-		rooms, _ := ha.AvailableRooms()
+		rooms, err := ha.AvailableRooms()
+		if err != nil {
+			_ = c.Error(err)
+			return
+		}
 
 		c.HTML(http.StatusOK, "room-selection-modal.gohtml", gin.H{
 			"ID":    id,

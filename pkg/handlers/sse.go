@@ -19,7 +19,9 @@ func SSE(c *gin.Context) {
 
 	eventChan := make(ClientChan)
 	clients[eventChan] = struct{}{}
-	sendUpdateEvent("")
+	go func() {
+		sendUpdateEvent("")
+	}()
 
 	defer func() {
 		delete(clients, eventChan)

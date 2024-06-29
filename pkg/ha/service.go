@@ -112,7 +112,10 @@ func AvailableRooms() ([]string, error) {
 
 	bdy, err := sendRequest(http.MethodGet, fmt.Sprintf("%s/api/states", host), nil)
 	respBdy := []map[string]interface{}{}
-	json.NewDecoder(bdy).Decode(&respBdy)
+	err = json.NewDecoder(bdy).Decode(&respBdy)
+	if err != nil {
+		return nil, err
+	}
 
 	res := []string{}
 
